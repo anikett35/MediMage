@@ -199,6 +199,7 @@ const DoctorList = () => {
       [name]: value
     }));
   };
+  
 
   const formatCardNumber = (value) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');

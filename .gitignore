@@ -30,8 +30,7 @@ lerna-debug.log*
 .env.production.local
 
 # Also ignore backend-specific env
-medimaga-backend/.env
-
+MediMage/medimaga-backend/.env
 
 # ========================
 # Editor / OS settings
