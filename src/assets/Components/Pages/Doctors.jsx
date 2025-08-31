@@ -6,24 +6,37 @@ const DoctorList = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
-  const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [review, setReview] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('');
+  
+  // Booking form state - same structure as your contact form
+  const [appointmentData, setAppointmentData] = useState({
+    patientName: '',
+    patientEmail: '',
+    patientPhone: '',
+    appointmentDate: '',
+    appointmentTime: '',
+    paymentMethod: 'card',
+    notes: ''
+  });
+
   const [cardDetails, setCardDetails] = useState({
     number: '',
     name: '',
     expiry: '',
     cvv: ''
   });
+
+  // Form submission states - same as your contact form
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
   const audioRef = useRef(null);
 
   // Sample doctor data
@@ -70,52 +83,21 @@ const DoctorList = () => {
         image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
         qualifications: 'MBBS, MD Pediatrics',
         languages: 'English, Spanish'
-      },
-      {
-        id: 4,
-        name: 'Dr. James Wilson',
-        specialty: 'Orthopedic Surgeon',
-        experience: '18 years',
-        rating: 4.6,
-        totalRatings: 156,
-        price: 2500,
-        availability: ['8:00 AM', '12:00 PM', '4:00 PM'],
-        location: 'Chennai, India',
-        image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-        qualifications: 'MBBS, MS Orthopedics',
-        languages: 'English, Tamil'
-      },
-      {
-        id: 5,
-        name: 'Dr. Priya Sharma',
-        specialty: 'Dermatologist',
-        experience: '10 years',
-        rating: 4.8,
-        totalRatings: 142,
-        price: 1800,
-        availability: ['9:30 AM', '2:30 PM', '6:00 PM'],
-        location: 'Pune, India',
-        image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-        qualifications: 'MBBS, MD Dermatology',
-        languages: 'English, Hindi, Marathi'
-      },
-      {
-        id: 6,
-        name: 'Dr. Robert Kumar',
-        specialty: 'Psychiatrist',
-        experience: '14 years',
-        rating: 4.5,
-        totalRatings: 89,
-        price: 1600,
-        availability: ['10:00 AM', '3:00 PM', '7:00 PM'],
-        location: 'Hyderabad, India',
-        image: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-        qualifications: 'MBBS, MD Psychiatry',
-        languages: 'English, Telugu, Hindi'
       }
     ];
     setDoctors(sampleDoctors);
   }, []);
+
+  // Auto-fill user data when signed in - similar to your contact form
+  useEffect(() => {
+    if (isSignedIn && user) {
+      setAppointmentData(prev => ({
+        ...prev,
+        patientName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        patientEmail: user.emailAddresses[0]?.emailAddress || ''
+      }));
+    }
+  }, [isSignedIn, user]);
 
   const specialties = [...new Set(doctors.map(doctor => doctor.specialty))];
 
@@ -125,6 +107,23 @@ const DoctorList = () => {
     const matchesSpecialty = !selectedSpecialty || doctor.specialty === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
+
+  // Handle input changes - same pattern as your contact form
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAppointmentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCardInputChange = (e) => {
+    const { name, value } = e.target;
+    setCardDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const playSuccessSound = () => {
     if (audioRef.current) {
@@ -145,32 +144,94 @@ const DoctorList = () => {
     setSelectedDoctor(doctor);
     setShowBookingModal(true);
     setPaymentSuccess(false);
+    setSubmitStatus(null);
+    setErrorMessage('');
+    
+    // Set tomorrow as default date
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    setBookingDate(tomorrow.toISOString().split('T')[0]);
+    setAppointmentData(prev => ({
+      ...prev,
+      appointmentDate: tomorrow.toISOString().split('T')[0]
+    }));
   };
 
-  const simulatePayment = () => {
-    setIsProcessing(true);
-    
-    setTimeout(() => {
-      setIsProcessing(false);
-      setPaymentSuccess(true);
-      playSuccessSound();
-      
-      setTimeout(() => {
-        setShowBookingModal(false);
-        setPaymentSuccess(false);
-      }, 3000);
-    }, 2000);
-  };
+  // Main appointment booking function - same structure as your contact form submit
+  const handleAppointmentBooking = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    setErrorMessage('');
 
-  const handlePayment = () => {
-    if (!bookingDate || !bookingTime) {
-      alert("Please select date and time for your appointment");
+    // Validate required fields
+    if (!appointmentData.patientName || !appointmentData.patientEmail || 
+        !appointmentData.appointmentDate || !appointmentData.appointmentTime) {
+      setSubmitStatus('error');
+      setErrorMessage('Please fill all required fields');
+      setIsSubmitting(false);
       return;
     }
-    simulatePayment();
+
+    try {
+      // Prepare data for backend - same structure as your contact form
+      const bookingData = {
+        patientName: appointmentData.patientName,
+        patientEmail: appointmentData.patientEmail,
+        patientPhone: appointmentData.patientPhone,
+        doctorId: selectedDoctor.id,
+        doctorName: selectedDoctor.name,
+        doctorSpecialty: selectedDoctor.specialty,
+        appointmentDate: appointmentData.appointmentDate,
+        appointmentTime: appointmentData.appointmentTime,
+        consultationFee: selectedDoctor.price,
+        paymentMethod: appointmentData.paymentMethod,
+        notes: appointmentData.notes
+      };
+
+      // Submit to backend - same pattern as your contact form
+      const response = await fetch("http://localhost:5000/api/appointments/book", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus("success");
+        setPaymentSuccess(true);
+        playSuccessSound();
+        
+        // Reset form data
+        setAppointmentData({
+          patientName: user?.fullName || '',
+          patientEmail: user?.emailAddresses[0]?.emailAddress || '',
+          patientPhone: '',
+          appointmentDate: '',
+          appointmentTime: '',
+          paymentMethod: 'card',
+          notes: ''
+        });
+        
+        // Auto-close modal after success
+        setTimeout(() => {
+          setShowBookingModal(false);
+          setPaymentSuccess(false);
+          setSubmitStatus(null);
+        }, 3000);
+        
+      } else {
+        setSubmitStatus("error");
+        setErrorMessage(data.message || "Failed to book appointment");
+      }
+    } catch (error) {
+      setSubmitStatus("error");
+      setErrorMessage("Network error. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const submitReview = () => {
@@ -191,15 +252,6 @@ const DoctorList = () => {
       </svg>
     ));
   };
-
-  const handleCardInputChange = (e) => {
-    const { name, value } = e.target;
-    setCardDetails(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
 
   const formatCardNumber = (value) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -385,7 +437,7 @@ const DoctorList = () => {
           </div>
         )}
 
-        {/* Booking Modal */}
+        {/* Booking Modal - Updated with backend integration */}
         {showBookingModal && selectedDoctor && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto border border-teal-100">
@@ -408,40 +460,91 @@ const DoctorList = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-3">
-                        <svg className="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-1 4h6m-6 0V9a2 2 0 012-2h4a2 2 0 012 2v2m-6 4v4a1 1 0 01-1 1H9a1 1 0 01-1-1v-4m4 0H8m5-5v.01M12 12v.01" />
-                        </svg>
-                        Select Date
-                      </label>
-                      <input
-                        type="date"
-                        value={bookingDate}
-                        onChange={(e) => setBookingDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
+                  <form onSubmit={handleAppointmentBooking} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                          Patient Name *
+                        </label>
+                        <input
+                          type="text"
+                          name="patientName"
+                          value={appointmentData.patientName}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter patient name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          name="patientEmail"
+                          value={appointmentData.patientEmail}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter email address"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-3">
-                        <svg className="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Select Time
+                        Phone Number
                       </label>
-                      <select
-                        value={bookingTime}
-                        onChange={(e) => setBookingTime(e.target.value)}
-                        className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      >
-                        <option value="">Choose available time</option>
-                        {selectedDoctor.availability.map((time, index) => (
-                          <option key={index} value={time}>{time}</option>
-                        ))}
-                      </select>
+                      <input
+                        type="tel"
+                        name="patientPhone"
+                        value={appointmentData.patientPhone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                          <svg className="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-1 4h6m-6 0V9a2 2 0 012-2h4a2 2 0 012 2v2m-6 4v4a1 1 0 01-1 1H9a1 1 0 01-1-1v-4m4 0H8m5-5v.01M12 12v.01" />
+                          </svg>
+                          Select Date *
+                        </label>
+                        <input
+                          type="date"
+                          name="appointmentDate"
+                          value={appointmentData.appointmentDate}
+                          onChange={handleInputChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          required
+                          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                          <svg className="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Select Time *
+                        </label>
+                        <select
+                          name="appointmentTime"
+                          value={appointmentData.appointmentTime}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        >
+                          <option value="">Choose available time</option>
+                          {selectedDoctor.availability.map((time, index) => (
+                            <option key={index} value={time}>{time}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div>
@@ -453,9 +556,10 @@ const DoctorList = () => {
                       </label>
                       <div className="grid grid-cols-2 gap-3 mb-4">
                         <button
-                          onClick={() => setPaymentMethod('card')}
+                          type="button"
+                          onClick={() => setAppointmentData(prev => ({ ...prev, paymentMethod: 'card' }))}
                           className={`p-3 rounded-xl border-2 font-medium transition-all ${
-                            paymentMethod === 'card' 
+                            appointmentData.paymentMethod === 'card' 
                               ? 'border-teal-500 bg-teal-50 text-teal-700' 
                               : 'border-slate-200 hover:border-slate-300'
                           }`}
@@ -463,9 +567,10 @@ const DoctorList = () => {
                           Credit/Debit Card
                         </button>
                         <button
-                          onClick={() => setPaymentMethod('upi')}
+                          type="button"
+                          onClick={() => setAppointmentData(prev => ({ ...prev, paymentMethod: 'upi' }))}
                           className={`p-3 rounded-xl border-2 font-medium transition-all ${
-                            paymentMethod === 'upi' 
+                            appointmentData.paymentMethod === 'upi' 
                               ? 'border-teal-500 bg-teal-50 text-teal-700' 
                               : 'border-slate-200 hover:border-slate-300'
                           }`}
@@ -474,7 +579,7 @@ const DoctorList = () => {
                         </button>
                       </div>
 
-                      {paymentMethod === 'card' && (
+                      {appointmentData.paymentMethod === 'card' && (
                         <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                           <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Card Number</label>
@@ -528,7 +633,7 @@ const DoctorList = () => {
                         </div>
                       )}
 
-                      {paymentMethod === 'upi' && (
+                      {appointmentData.paymentMethod === 'upi' && (
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                           <label className="block text-sm font-medium text-slate-700 mb-2">UPI ID</label>
                           <input
@@ -541,6 +646,20 @@ const DoctorList = () => {
                       )}
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">
+                        Additional Notes
+                      </label>
+                      <textarea
+                        name="notes"
+                        value={appointmentData.notes}
+                        onChange={handleInputChange}
+                        rows="3"
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-none"
+                        placeholder="Any specific concerns or requirements for your appointment..."
+                      />
+                    </div>
+
                     <div className="bg-teal-50 p-4 rounded-xl border border-teal-200">
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-slate-800">Total Amount:</span>
@@ -550,31 +669,77 @@ const DoctorList = () => {
 
                     <div className="flex space-x-3">
                       <button
+                        type="button"
                         onClick={() => {
                           setShowBookingModal(false);
-                          setIsProcessing(false);
+                          setIsSubmitting(false);
                         }}
                         className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-xl font-semibold transition-colors duration-200"
                       >
                         Cancel
                       </button>
                       <button
-                        onClick={handlePayment}
-                        disabled={!bookingDate || !bookingTime || isProcessing}
+                        type="submit"
+                        disabled={isSubmitting}
                         className="flex-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                       >
-                        {isProcessing ? (
+                        {isSubmitting ? (
                           <div className="flex items-center justify-center">
                             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Processing...
+                            Booking Appointment...
                           </div>
-                        ) : 'Confirm & Pay'}
+                        ) : 'Book Appointment & Pay'}
                       </button>
                     </div>
-                  </div>
+
+                    {/* Status Messages - Same as your contact form */}
+                    {submitStatus === "success" && (
+                      <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl flex items-center space-x-3">
+                        <svg
+                          className="w-5 h-5 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <div>
+                          <p className="font-semibold">Appointment booked successfully!</p>
+                          <p className="text-sm">Confirmation details sent to your email.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {submitStatus === "error" && (
+                      <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl flex items-center space-x-3">
+                        <svg
+                          className="w-5 h-5 text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div>
+                          <p className="font-semibold">Failed to book appointment</p>
+                          <p className="text-sm">{errorMessage}</p>
+                        </div>
+                      </div>
+                    )}
+                  </form>
                 </>
               ) : (
                 <div className="text-center py-12">
@@ -583,12 +748,13 @@ const DoctorList = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-3xl font-bold text-slate-800 mb-4">Payment Successful!</h3>
+                  <h3 className="text-3xl font-bold text-slate-800 mb-4">Appointment Booked!</h3>
                   <p className="text-slate-600 mb-4">Your appointment with {selectedDoctor.name} has been confirmed.</p>
                   <div className="bg-teal-50 p-4 rounded-xl border border-teal-200 max-w-sm mx-auto">
                     <p className="text-teal-800 font-semibold">Appointment Details:</p>
-                    <p className="text-teal-700">Date: {bookingDate}</p>
-                    <p className="text-teal-700">Time: {bookingTime}</p>
+                    <p className="text-teal-700">Date: {appointmentData.appointmentDate}</p>
+                    <p className="text-teal-700">Time: {appointmentData.appointmentTime}</p>
+                    <p className="text-teal-700">Fee: ₹{selectedDoctor.price}</p>
                   </div>
                 </div>
               )}

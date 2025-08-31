@@ -5,6 +5,41 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const { isSignedIn, user, isLoaded } = useUser();
 
+  // Initialize Lenis for smooth scrolling
+  useEffect(() => {
+    // Only initialize Lenis on client-side
+    if (typeof window !== 'undefined') {
+      // Dynamically import Lenis for better performance
+      import('lenis').then((LenisModule) => {
+        const Lenis = LenisModule.default;
+        const lenis = new Lenis({
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          orientation: 'vertical',
+          gestureOrientation: 'vertical',
+          smoothWheel: true,
+          wheelMultiplier: 1,
+          touchMultiplier: 2,
+          infinite: false,
+        });
+
+        function raf(time) {
+          lenis.raf(time);
+          requestAnimationFrame(raf);
+        }
+
+        requestAnimationFrame(raf);
+
+        // Clean up function
+        return () => {
+          lenis.destroy();
+        };
+      }).catch(error => {
+        console.error('Failed to load Lenis:', error);
+      });
+    }
+  }, []);
+
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-teal-100">
@@ -570,6 +605,7 @@ function Testimonials() {
                 <span className="text-xs font-bold text-slate-600">+50K</span>
               </div>
             </div>
+            <span className="text-slate-700 font-semibold">Join our growing healthcare community</span>
             <span className="text-slate-700 font-semibold">Join our growing healthcare community</span>
           </div>
         </div>
