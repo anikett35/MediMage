@@ -83,11 +83,11 @@ export default function Contact() {
         </svg>
       ),
       title: "Email Support",
-      primary: "support@medimaga.com",
+      primary: "support@medimage.com",
       secondary: "Response within 2-4 hours",
       description:
         "Get comprehensive help with appointments, technical issues, and general inquiries",
-      action: "mailto:support@medimaga.com",
+      action: "mailto:support@medimage.com",
       color: "teal",
     },
     {
@@ -107,11 +107,11 @@ export default function Contact() {
         </svg>
       ),
       title: "Phone Support",
-      primary: "+91 1800-MEDIMAGA",
+      primary: "+91 1800-MediMage",
       secondary: "Mon-Sat, 8 AM - 10 PM IST",
       description:
         "Speak directly with our certified healthcare support specialists",
-      action: "tel:+911800medimaga",
+      action: "tel:+911800medimage",
       color: "cyan",
     },
     {
@@ -166,9 +166,9 @@ export default function Contact() {
     {
       city: "Mumbai Headquarters",
       address:
-        "MediMaga Tower, 123 Healthcare Boulevard, Bandra Kurla Complex, Mumbai 400051",
+        "MediMage Tower, 123 Healthcare Boulevard, Bandra Kurla Complex, Mumbai 400051",
       phone: "+91 22 6789 0000",
-      email: "mumbai@medimaga.com",
+      email: "mumbai@medimage.com",
       hours: "Mon-Sat: 8 AM - 9 PM",
       services: [
         "General Consultations",
@@ -181,7 +181,7 @@ export default function Contact() {
       address:
         "Health Plaza, 456 Medical District, Connaught Place, New Delhi 110001",
       phone: "+91 11 5678 9000",
-      email: "delhi@medimaga.com",
+      email: "delhi@medimage.com",
       hours: "Mon-Sat: 7 AM - 10 PM",
       services: ["Telemedicine Hub", "Corporate Health", "Wellness Programs"],
     },
@@ -215,7 +215,7 @@ export default function Contact() {
     {
       question: "How secure is my personal health information?",
       answer:
-        "MediMaga employs bank-level encryption and follows strict HIPAA compliance standards. Your data is stored in secure, encrypted servers and never shared with third parties without your explicit consent.",
+        "MediMage employs bank-level encryption and follows strict HIPAA compliance standards. Your data is stored in secure, encrypted servers and never shared with third parties without your explicit consent.",
     },
     {
       question: "Do you accept health insurance?",
@@ -408,7 +408,7 @@ export default function Contact() {
                       className="text-sm text-slate-600 leading-relaxed"
                     >
                       I consent to the processing of my personal data in
-                      accordance with MediMaga's
+                      accordance with MediMage's
                       <a
                         href="#"
                         className="text-teal-600 hover:text-teal-700 font-medium ml-1"
