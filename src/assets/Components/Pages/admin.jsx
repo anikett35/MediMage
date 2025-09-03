@@ -287,16 +287,16 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 overflow-hidden pt-16">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 rounded-3xl mb-6 shadow-2xl">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-3">
+          <h1 className="overflow-hidden text text-5xl font-bold bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-3">
             MediMage Admin Dashboard
           </h1>
-          <p className="text-slate-600 text-xl font-medium">Comprehensive patient care management system</p>
+          <p className="text-slate-600 text-xl font-medium overflow-hidden pt-4">Comprehensive patient care management system</p>
         </div>
 
         {/* Tab Navigation */}
