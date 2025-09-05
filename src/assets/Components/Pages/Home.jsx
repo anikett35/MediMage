@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { Link } from "react-router-dom";
 
 export default function Home() {
   const { isSignedIn, user, isLoaded } = useUser();
+  const [scrollY, setScrollY] = useState(0);
 
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
-    // Only initialize Lenis on client-side
     if (typeof window !== 'undefined') {
-      // Dynamically import Lenis for better performance
       import('lenis').then((LenisModule) => {
         const Lenis = LenisModule.default;
         const lenis = new Lenis({
@@ -30,7 +28,6 @@ export default function Home() {
 
         requestAnimationFrame(raf);
 
-        // Clean up function
         return () => {
           lenis.destroy();
         };
@@ -38,14 +35,19 @@ export default function Home() {
         console.error('Failed to load Lenis:', error);
       });
     }
+
+    // Scroll animation handler
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   if (!isLoaded) {
     return (
-      <div  className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-100 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
         <div className="flex flex-col items-center relative z-10">
           <div className="relative mb-6">
@@ -54,7 +56,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <p className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent animate-pulse">
-              Loading MediMage...
+              Loading...
             </p>
             <div className="mt-3 flex justify-center space-x-1">
               <div className="h-2 w-2 bg-teal-500 rounded-full animate-bounce"></div>
@@ -68,27 +70,48 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-100 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-40">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-100 relative overflow-hidden">
+      {/* Animated background elements that respond to scroll */}
+      <div 
+        className="absolute inset-0 opacity-40"
+        style={{
+          transform: `translateY(${scrollY * 0.5}px)`
+        }}
+      >
         <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full blur-3xl animate-blob"></div>
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+          <div 
+            className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full blur-3xl animate-blob"
+            style={{
+              transform: `translate(${Math.sin(scrollY * 0.01) * 50}px, ${Math.cos(scrollY * 0.01) * 30}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute bottom-10 left-10 w-96 h-96 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full blur-3xl animate-blob animation-delay-2000"
+            style={{
+              transform: `translate(${Math.cos(scrollY * 0.008) * 40}px, ${Math.sin(scrollY * 0.008) * 20}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-400 to-teal-400 rounded-full blur-3xl animate-blob animation-delay-4000"
+            style={{
+              transform: `translate(-50%, -50%) translate(${Math.sin(scrollY * 0.012) * 60}px, ${Math.cos(scrollY * 0.012) * 40}px)`
+            }}
+          ></div>
         </div>
       </div>
       
       <div className="max-w-7xl mx-auto px-4 py-16 relative z-10">
         {isSignedIn ? (
-          <SignedInView user={user} />
+          <SignedInView user={user} scrollY={scrollY} />
         ) : (
-          <SignedOutView />
+          <SignedOutView scrollY={scrollY} />
         )}
       </div>
     </div>
   );
 }
 
-function SignedInView({ user }) {
+function SignedInView({ user, scrollY }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -102,7 +125,12 @@ function SignedInView({ user }) {
 
   return (
     <div className="text-center animate-fade-in-up overflow-hidden pt-16">
-      <div className="mb-16 relative">
+      <div 
+        className="mb-16 relative"
+        style={{
+          transform: `translateY(${scrollY * 0.1}px)`
+        }}
+      >
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -112,7 +140,12 @@ function SignedInView({ user }) {
         
         <div className="flex items-center justify-center mb-8 relative">
           <div className="group relative">
-            <div className="w-24 h-24 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-700 hover:scale-110 hover:rotate-12 animate-float">
+            <div 
+              className="w-24 h-24 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-700 hover:scale-110 hover:rotate-12 animate-float"
+              style={{
+                transform: `scale(${1 + Math.sin(scrollY * 0.01) * 0.1}) rotate(${scrollY * 0.1}deg)`
+              }}
+            >
               <svg className="w-12 h-12 text-white transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -122,7 +155,12 @@ function SignedInView({ user }) {
           </div>
         </div>
         
-        <h1 className="text-6xl md:text-7xl font-black mb-6 animate-fade-in-up animation-delay-300">
+        <h1 
+          className="text-6xl md:text-7xl font-black mb-6 animate-fade-in-up animation-delay-300"
+          style={{
+            transform: `translateY(${scrollY * 0.05}px)`
+          }}
+        >
           <span className="inline-block transform transition-all duration-300 hover:scale-105">Welcome back,</span>
           <br />
           <span className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent animate-gradient bg-300% inline-block transform transition-all duration-300 hover:scale-105">
@@ -130,111 +168,85 @@ function SignedInView({ user }) {
           </span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-500">
-          Your health journey continues with{" "}
-          <span className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-            MediMage
-          </span>
-          . Access your personalized dashboard to manage appointments, 
-          view medical records, and connect with healthcare professionals.
+        <p 
+          className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-500"
+          style={{
+            transform: `translateY(${scrollY * 0.08}px)`
+          }}
+        >
+          Continue your journey with us. Explore our platform and discover amazing features 
+          designed to enhance your experience.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16 max-w-6xl mx-auto animate-fade-in-up animation-delay-700">
-        <DashboardCard
-          title="Patient Dashboard"
-          description="Book new appointments, view schedules, and manage your healthcare journey"
-          link="/dashboard"
-          icon={
-            <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-          }
-          primary={true}
-        />
-        <DashboardCard
-          title="Medical Records"
-          description="Access your complete medical history and appointment summaries"
-          link="/history"
-          icon={
-            <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          }
-        />
-        <DashboardCard
-          title="Find Doctors"
-          description="Search and connect with verified healthcare professionals"
-          link="./Doctors.jsx"
-          icon={
-            <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          }
-        />
-      </div>
-
-      <QuickStats />
-      
-      <div className="mt-20 relative animate-fade-in-up animation-delay-1200">
+      {/* Scroll-reactive welcome section */}
+      <div 
+        className="mt-16 relative animate-fade-in-up animation-delay-700"
+        style={{
+          transform: `translateY(${scrollY * 0.12}px) scale(${1 + Math.sin(scrollY * 0.005) * 0.05})`
+        }}
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-3xl blur-3xl opacity-10 animate-pulse"></div>
         <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-10 transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl">
           <h3 className="text-3xl font-bold text-slate-800 mb-8 flex items-center justify-center">
             <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full mr-3 animate-pulse"></div>
-            Health Reminders
+            Your Dashboard
           </h3>
           <div className="grid md:grid-cols-2 gap-8">
-            <HealthReminderCard
-              title="Next Appointment"
-              subtitle="Schedule your next visit"
+            <WelcomeCard
+              title="Explore Features"
+              subtitle="Discover what's new"
               icon={
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               }
-              color="amber"
+              color="teal"
             />
-            <HealthReminderCard
-              title="Health Check"
-              subtitle="Annual checkup due"
+            <WelcomeCard
+              title="Quick Access"
+              subtitle="Jump to your favorites"
               icon={
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               }
-              color="green"
+              color="cyan"
             />
           </div>
         </div>
       </div>
+      
+      {/* Animated stats section */}
+      <QuickStats scrollY={scrollY} />
     </div>
   );
 }
 
-function HealthReminderCard({ title, subtitle, icon, color }) {
+function WelcomeCard({ title, subtitle, icon, color }) {
   const colorClasses = {
-    amber: {
-      bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
-      border: 'border-amber-200',
-      iconBg: 'bg-gradient-to-r from-amber-500 to-orange-500',
-      textPrimary: 'text-amber-800',
-      textSecondary: 'text-amber-600',
-      shadow: 'shadow-amber-100'
+    teal: {
+      bg: 'bg-gradient-to-br from-teal-50 to-cyan-50',
+      border: 'border-teal-200',
+      iconBg: 'bg-gradient-to-r from-teal-500 to-cyan-500',
+      textPrimary: 'text-teal-800',
+      textSecondary: 'text-teal-600',
+      shadow: 'shadow-teal-100'
     },
-    green: {
-      bg: 'bg-gradient-to-br from-green-50 to-emerald-50',
-      border: 'border-green-200',
-      iconBg: 'bg-gradient-to-r from-green-500 to-emerald-500',
-      textPrimary: 'text-green-800',
-      textSecondary: 'text-green-600',
-      shadow: 'shadow-green-100'
+    cyan: {
+      bg: 'bg-gradient-to-br from-cyan-50 to-blue-50',
+      border: 'border-cyan-200',
+      iconBg: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+      textPrimary: 'text-cyan-800',
+      textSecondary: 'text-cyan-600',
+      shadow: 'shadow-cyan-100'
     }
   };
 
   const classes = colorClasses[color];
 
   return (
-    <div className={`group flex items-center p-6 ${classes.bg} rounded-2xl border ${classes.border} ${classes.shadow} shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:-translate-y-1`}>
+    <div className={`group flex items-center p-6 ${classes.bg} rounded-2xl border ${classes.border} ${classes.shadow} shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:-translate-y-1 cursor-pointer`}>
       <div className={`w-14 h-14 ${classes.iconBg} rounded-2xl flex items-center justify-center mr-6 shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
         {icon}
       </div>
@@ -246,7 +258,7 @@ function HealthReminderCard({ title, subtitle, icon, color }) {
   );
 }
 
-function SignedOutView() {
+function SignedOutView({ scrollY }) {
   const heroRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
   
@@ -265,11 +277,12 @@ function SignedOutView() {
         rotateX(${y * 2}deg)
         rotateY(${x * 2}deg)
         scale3d(1.01, 1.01, 1.01)
+        translateY(${scrollY * 0.1}px)
       `;
     };
     
     const handleLeave = () => {
-      heroRef.current.style.transform = 'perspective(1500px) rotateX(0) rotateY(0)';
+      heroRef.current.style.transform = `perspective(1500px) rotateX(0) rotateY(0) translateY(${scrollY * 0.1}px)`;
     };
     
     if (heroRef.current) {
@@ -283,21 +296,31 @@ function SignedOutView() {
         heroRef.current.removeEventListener('mouseleave', handleLeave);
       }
     };
-  }, []);
+  }, [scrollY]);
 
   return (
     <div className="overflow-hidden">
-      {/* Enhanced Hero Section with 3D effects */}
+      {/* Enhanced Hero Section with scroll effects */}
       <section 
         ref={heroRef}
         className={`min-h-[90vh] flex flex-col justify-center items-center text-center px-4 py-20 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
-        <div className="mb-16 relative">
+        <div 
+          className="mb-16 relative"
+          style={{
+            transform: `translateY(${scrollY * 0.15}px)`
+          }}
+        >
           <div className="flex items-center justify-center mb-12">
             <div className="group relative">
-              <div className="w-32 h-32 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-1000 hover:scale-110 animate-float">
+              <div 
+                className="w-32 h-32 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-1000 hover:scale-110 animate-float"
+                style={{
+                  transform: `scale(${1 + Math.sin(scrollY * 0.005) * 0.1}) rotate(${scrollY * 0.1}deg)`
+                }}
+              >
                 <svg className="w-16 h-16 text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <div className="absolute -inset-8 bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-500 rounded-full blur-3xl opacity-30 animate-pulse group-hover:opacity-50 transition-opacity duration-500"></div>
@@ -306,139 +329,167 @@ function SignedOutView() {
             </div>
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight">
+          <h1 
+            className="text-6xl md:text-8xl font-black mb-8 leading-tight"
+            style={{
+              transform: `translateY(${scrollY * 0.1}px)`
+            }}
+          >
             <span className="inline-block transform transition-all duration-500 hover:scale-105 animate-fade-in-up">
               Welcome to
             </span>
             <br />
             <span className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent animate-gradient bg-300% inline-block transform transition-all duration-500 hover:scale-105 animate-fade-in-up animation-delay-300">
-              MediMage
+              Our Platform
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed mb-10 animate-fade-in-up animation-delay-600">
-            Your trusted partner in healthcare management. Connect with top medical professionals, 
-            book appointments seamlessly, and take control of your health journey with our advanced platform.
+          <p 
+            className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed mb-10 animate-fade-in-up animation-delay-600"
+            style={{
+              transform: `translateY(${scrollY * 0.12}px)`
+            }}
+          >
+            Discover amazing features and take your experience to the next level. 
+            Connect, explore, and achieve your goals with our innovative platform designed for the modern world.
           </p>
           
-          <div className="flex items-center justify-center gap-3 mb-10 animate-fade-in-up animation-delay-800">
+          <div 
+            className="flex items-center justify-center gap-3 mb-10 animate-fade-in-up animation-delay-800"
+            style={{
+              transform: `translateY(${scrollY * 0.08}px)`
+            }}
+          >
             <div className="flex -space-x-3">
               {[
-                'from-pink-400 to-red-400',
-                'from-blue-400 to-purple-400',
-                'from-green-400 to-teal-400',
-                'from-yellow-400 to-orange-400',
-                'from-purple-400 to-indigo-400'
+                'from-teal-400 to-cyan-400',
+                'from-cyan-400 to-blue-400',
+                'from-blue-400 to-teal-400',
+                'from-teal-500 to-cyan-500',
+                'from-cyan-500 to-blue-500'
               ].map((gradient, index) => (
                 <div 
                   key={index}
                   className={`w-10 h-10 bg-gradient-to-r ${gradient} rounded-full border-3 border-white shadow-lg transform transition-all duration-300 hover:scale-110 hover:z-10 animate-bounce`}
-                  style={{ animationDelay: `${index * 200}ms` }}
+                  style={{ 
+                    animationDelay: `${index * 200}ms`,
+                    transform: `scale(${1 + Math.sin((scrollY + index * 100) * 0.01) * 0.1})`
+                  }}
                 />
               ))}
             </div>
             <span className="text-base text-slate-500 ml-4 font-medium">
-              Trusted by <span className="font-bold text-teal-600">50,000+</span> patients worldwide
+              Join <span className="font-bold text-teal-600">10,000+</span> users worldwide
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-8 mt-8 mb-20 animate-fade-in-up animation-delay-1000">
-          <Link
-            to="/sign-up"
-            className="group relative px-12 py-5 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white font-bold rounded-full shadow-2xl transform transition-all duration-500 hover:scale-110 hover:shadow-3xl overflow-hidden"
-          >
+        <div 
+          className="flex flex-col sm:flex-row gap-8 mt-8 mb-20 animate-fade-in-up animation-delay-1000"
+          style={{
+            transform: `translateY(${scrollY * 0.06}px)`
+          }}
+        >
+          <p className="group relative px-12 py-5 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white font-bold rounded-full shadow-2xl transform transition-all duration-500 hover:scale-110 hover:shadow-3xl overflow-hidden cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300"></div>
             <span className="relative flex items-center text-lg">
-              Start Your Journey
+              Get Started
               <svg className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </span>
-          </Link>
+          </p>
           
-          <Link
-            to="/about"
-            className="group relative px-12 py-5 bg-white/90 backdrop-blur-xl text-teal-600 border-2 border-teal-200 font-bold rounded-full shadow-xl transform transition-all duration-500 hover:scale-105 hover:bg-white hover:border-teal-300 hover:shadow-2xl overflow-hidden"
-          >
+          <p className="group relative px-12 py-5 bg-white/90 backdrop-blur-xl text-teal-600 border-2 border-teal-200 font-bold rounded-full shadow-xl transform transition-all duration-500 hover:scale-105 hover:bg-white hover:border-teal-300 hover:shadow-2xl overflow-hidden cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-teal-50 to-cyan-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <span className="relative text-lg">Learn More</span>
-          </Link>
+          </p>
         </div>
 
-        {/* Enhanced Interactive Process Cards */}
-        <div className="relative w-full max-w-7xl mx-auto mt-20 animate-fade-in-up animation-delay-1200">
+        {/* Enhanced Interactive Process Cards with scroll effects */}
+        <div 
+          className="relative w-full max-w-7xl mx-auto mt-20 animate-fade-in-up animation-delay-1200"
+          style={{
+            transform: `translateY(${scrollY * 0.04}px) scale(${1 + Math.sin(scrollY * 0.003) * 0.02})`
+          }}
+        >
           <div className="absolute -inset-12 bg-gradient-to-r from-teal-100 via-cyan-100 to-blue-100 rounded-3xl blur-3xl opacity-40 animate-pulse"></div>
           
           <div className="relative bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl p-12 border border-white/50 transform transition-all duration-700 hover:scale-[1.02] hover:shadow-3xl">
             <h3 className="text-4xl font-bold text-slate-800 mb-12 text-center flex items-center justify-center">
               <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full mr-4 animate-pulse"></div>
-              Your Healthcare Journey in 3 Steps
+              Simple Steps to Success
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               <ProcessCard
                 step="1"
-                title="Find Specialists"
-                description="Browse our network of verified healthcare professionals across all medical specialties"
+                title="Discover"
+                description="Explore our comprehensive platform and discover features designed for your needs"
                 icon={
                   <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 }
-                color="from-blue-500 via-blue-600 to-purple-600"
+                color="from-teal-500 via-teal-600 to-cyan-600"
                 delay="0"
+                scrollY={scrollY}
               />
               <ProcessCard
                 step="2"
-                title="Book Instantly"
-                description="Schedule appointments 24/7 with real-time availability and instant confirmation"
+                title="Connect"
+                description="Join our community and connect with like-minded individuals sharing similar goals"
                 icon={
                   <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 }
-                color="from-teal-500 via-cyan-500 to-blue-500"
+                color="from-cyan-500 via-cyan-600 to-blue-600"
                 delay="200"
+                scrollY={scrollY}
               />
               <ProcessCard
                 step="3"
-                title="Receive Care"
-                description="Get quality healthcare with follow-up support and comprehensive health tracking"
+                title="Achieve"
+                description="Reach your goals with our comprehensive tools and continuous support system"
                 icon={
                   <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 }
-                color="from-green-500 via-emerald-500 to-teal-500"
+                color="from-blue-500 via-blue-600 to-teal-600"
                 delay="400"
+                scrollY={scrollY}
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Enhanced Stats Section */}
-      <StatsSection />
+      {/* Enhanced Stats Section with scroll effects */}
+      <StatsSection scrollY={scrollY} />
 
       {/* Features Section */}
-      <Features />
+      <Features scrollY={scrollY} />
 
       {/* Testimonials Section */}
-      <Testimonials />
+      <Testimonials scrollY={scrollY} />
 
       {/* CTA Section */}
-      <CTASection />
+      <CTASection scrollY={scrollY} />
     </div>
   );
 }
 
-function ProcessCard({ step, title, description, icon, color, delay }) {
+function ProcessCard({ step, title, description, icon, color, delay, scrollY }) {
   return (
     <div 
       className="group relative overflow-hidden animate-fade-in-up"
-      style={{ animationDelay: `${delay}ms` }}
+      style={{ 
+        animationDelay: `${delay}ms`,
+        transform: `translateY(${Math.sin((scrollY + parseInt(delay)) * 0.003) * 10}px)`
+      }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50 rounded-3xl transform transition-all duration-700 group-hover:scale-105"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-slate-100 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -467,11 +518,11 @@ function ProcessCard({ step, title, description, icon, color, delay }) {
   );
 }
 
-function StatsSection() {
+function StatsSection({ scrollY }) {
   const stats = [
     { 
-      number: '50,000+', 
-      label: 'Patients Served', 
+      number: '10,000+', 
+      label: 'Active Users', 
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -479,17 +530,17 @@ function StatsSection() {
       )
     },
     { 
-      number: '1,500+', 
-      label: 'Medical Professionals', 
+      number: '99.9%', 
+      label: 'Uptime', 
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       )
     },
     { 
-      number: '98.5%', 
-      label: 'Satisfaction Rate', 
+      number: '4.9/5', 
+      label: 'User Rating', 
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -498,7 +549,7 @@ function StatsSection() {
     },
     { 
       number: '24/7', 
-      label: 'Support Available', 
+      label: 'Support', 
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -508,25 +559,54 @@ function StatsSection() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white relative overflow-hidden">
+    <section 
+      className="py-24 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white relative overflow-hidden"
+      style={{
+        transform: `translateY(${scrollY * 0.05}px)`
+      }}
+    >
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-full h-full opacity-20">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl animate-blob"></div>
-          <div className="absolute bottom-10 right-10 w-64 h-64 bg-white rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-white rounded-full blur-2xl animate-blob animation-delay-4000"></div>
+          <div 
+            className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl animate-blob"
+            style={{
+              transform: `translate(${Math.sin(scrollY * 0.01) * 30}px, ${Math.cos(scrollY * 0.01) * 20}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute bottom-10 right-10 w-64 h-64 bg-white rounded-full blur-3xl animate-blob animation-delay-2000"
+            style={{
+              transform: `translate(${Math.cos(scrollY * 0.008) * 40}px, ${Math.sin(scrollY * 0.008) * 25}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/3 w-32 h-32 bg-white rounded-full blur-2xl animate-blob animation-delay-4000"
+            style={{
+              transform: `translate(${Math.sin(scrollY * 0.012) * 50}px, ${Math.cos(scrollY * 0.012) * 30}px)`
+            }}
+          ></div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-teal-700/20 to-blue-700/20"></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4">
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black mb-6 animate-fade-in-up">
+          <h2 
+            className="text-5xl md:text-6xl font-black mb-6 animate-fade-in-up"
+            style={{
+              transform: `translateY(${scrollY * 0.08}px)`
+            }}
+          >
             <span className="bg-gradient-to-r from-white to-teal-100 bg-clip-text text-transparent">
-              Trusted Healthcare Platform
+              Trusted Platform
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-teal-100 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300">
-            Join thousands of patients who trust MediMage for their healthcare needs
+          <p 
+            className="text-xl md:text-2xl text-teal-100 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300"
+            style={{
+              transform: `translateY(${scrollY * 0.06}px)`
+            }}
+          >
+            Join thousands of users who trust our platform for their needs
           </p>
         </div>
         
@@ -535,7 +615,10 @@ function StatsSection() {
             <div 
               key={index} 
               className="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 text-center transform transition-all duration-700 hover:scale-110 hover:bg-white/20 border border-white/30 hover:border-white/50 shadow-2xl animate-fade-in-up"
-              style={{ animationDelay: `${index * 150}ms` }}
+              style={{ 
+                animationDelay: `${index * 150}ms`,
+                transform: `translateY(${Math.sin((scrollY + index * 100) * 0.005) * 15}px) ${scrollY > 0 ? 'scale(1.05)' : 'scale(1)'}`
+              }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
@@ -562,27 +645,17 @@ function StatsSection() {
   );
 }
 
-function Features() {
+function Features({ scrollY }) {
   const features = [
     {
       icon: (
         <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      title: "Verified Healthcare Network",
-      description: "Connect with board-certified doctors and specialists across all medical fields, thoroughly vetted for quality care.",
-      color: "from-blue-500 via-blue-600 to-purple-600"
-    },
-    {
-      icon: (
-        <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      title: "Instant Booking System",
-      description: "Book appointments in real-time with immediate confirmation and automated scheduling across multiple time zones.",
-      color: "from-teal-500 via-cyan-500 to-blue-500"
+      title: "Lightning Fast",
+      description: "Experience blazing fast performance with our optimized platform designed for modern users.",
+      color: "from-teal-500 via-teal-600 to-cyan-600"
     },
     {
       icon: (
@@ -590,19 +663,19 @@ function Features() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       ),
-      title: "HIPAA-Compliant Security",
-      description: "Your medical information is protected with bank-level encryption and strict compliance with healthcare privacy laws.",
-      color: "from-green-500 via-emerald-500 to-teal-500"
+      title: "Secure & Private",
+      description: "Your data is protected with enterprise-grade security and privacy controls.",
+      color: "from-cyan-500 via-cyan-600 to-blue-600"
     },
     {
       icon: (
         <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-5 5v-5z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
         </svg>
       ),
-      title: "Smart Notifications",
-      description: "Receive intelligent reminders, health tips, and appointment updates via SMS, email, or push notifications.",
-      color: "from-orange-500 via-red-500 to-pink-500"
+      title: "Responsive Design",
+      description: "Perfect experience across all devices with our mobile-first responsive design.",
+      color: "from-blue-500 via-blue-600 to-teal-600"
     },
     {
       icon: (
@@ -610,9 +683,9 @@ function Features() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
       ),
-      title: "Telehealth Integration",
-      description: "Access virtual consultations with HD video calls and secure messaging for convenient remote healthcare.",
-      color: "from-purple-500 via-indigo-500 to-blue-500"
+      title: "24/7 Support",
+      description: "Get help when you need it with our round-the-clock customer support team.",
+      color: "from-teal-500 via-cyan-500 to-blue-500"
     },
     {
       icon: (
@@ -620,28 +693,63 @@ function Features() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      title: "Health Analytics",
-      description: "Track your health journey with personalized insights, appointment history, and wellness recommendations.",
-      color: "from-indigo-500 via-purple-500 to-pink-500"
+      title: "Analytics & Insights",
+      description: "Make data-driven decisions with comprehensive analytics and insights.",
+      color: "from-cyan-500 via-blue-500 to-teal-500"
+    },
+    {
+      icon: (
+        <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+        </svg>
+      ),
+      title: "Customizable",
+      description: "Tailor the platform to your needs with extensive customization options.",
+      color: "from-blue-500 via-teal-500 to-cyan-500"
     }
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <section 
+      className="py-24 bg-gradient-to-br from-slate-50 via-white to-cyan-50 relative overflow-hidden"
+      style={{
+        transform: `translateY(${scrollY * 0.03}px)`
+      }}
+    >
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div 
+          className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full blur-3xl animate-blob"
+          style={{
+            transform: `translate(${Math.sin(scrollY * 0.006) * 40}px, ${Math.cos(scrollY * 0.006) * 30}px)`
+          }}
+        ></div>
+        <div 
+          className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full blur-3xl animate-blob animation-delay-2000"
+          style={{
+            transform: `translate(${Math.cos(scrollY * 0.008) * 50}px, ${Math.sin(scrollY * 0.008) * 20}px)`
+          }}
+        ></div>
       </div>
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black text-slate-800 mb-8 animate-fade-in-up">
+          <h2 
+            className="text-5xl md:text-6xl font-black text-slate-800 mb-8 animate-fade-in-up"
+            style={{
+              transform: `translateY(${scrollY * 0.06}px)`
+            }}
+          >
             <span className="bg-gradient-to-r from-slate-800 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-              Advanced Healthcare Features
+              Powerful Features
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300">
-            Experience next-generation healthcare management with our comprehensive suite of features designed for modern patients and providers.
+          <p 
+            className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300"
+            style={{
+              transform: `translateY(${scrollY * 0.04}px)`
+            }}
+          >
+            Discover the comprehensive suite of features designed to enhance your experience and boost productivity.
           </p>
         </div>
         
@@ -650,7 +758,10 @@ function Features() {
             <div 
               key={index} 
               className="group relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl p-10 border border-white/50 shadow-xl transform transition-all duration-700 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 animate-fade-in-up"
-              style={{ animationDelay: `${index * 150}ms` }}
+              style={{ 
+                animationDelay: `${index * 150}ms`,
+                transform: `translateY(${Math.sin((scrollY + index * 100) * 0.004) * 8}px)`
+              }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
               
@@ -683,37 +794,37 @@ function Features() {
   );
 }
 
-function Testimonials() {
+function Testimonials({ scrollY }) {
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "Working Mother",
-      content: "MediMage transformed how I manage my family's healthcare. The instant booking and reminder system saved us so much time and stress.",
+      name: "Alex Johnson",
+      role: "Product Manager",
+      content: "This platform has transformed how we work. The intuitive design and powerful features make it a joy to use every day.",
       avatar: (
-        <div className="w-20 h-20 bg-gradient-to-r from-pink-400 to-red-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
-          SJ
+        <div className="w-20 h-20 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
+          AJ
         </div>
       ),
       rating: 5
     },
     {
-      name: "Dr. Michael Chen",
-      role: "Cardiologist, Metro Hospital",
-      content: "As a healthcare provider, MediMage has streamlined my practice management beautifully. The platform is intuitive and my patients love the convenience.",
+      name: "Sarah Chen",
+      role: "UI/UX Designer",
+      content: "The attention to detail is incredible. Everything feels polished and the user experience is simply outstanding.",
       avatar: (
-        <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
-          MC
+        <div className="w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
+          SC
         </div>
       ),
       rating: 5
     },
     {
-      name: "James Wilson",
-      role: "Senior Patient",
-      content: "The telehealth features are incredible. I can now consult with specialists without traveling, and the support team is always helpful.",
+      name: "Michael Smith",
+      role: "Developer",
+      content: "Fast, reliable, and feature-rich. This platform has everything we need to build amazing products efficiently.",
       avatar: (
-        <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
-          JW
+        <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-xl">
+          MS
         </div>
       ),
       rating: 5
@@ -721,21 +832,46 @@ function Testimonials() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 relative overflow-hidden">
+    <section 
+      className="py-24 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 relative overflow-hidden"
+      style={{
+        transform: `translateY(${scrollY * 0.02}px)`
+      }}
+    >
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-teal-300 to-cyan-300 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-300 to-purple-300 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        <div 
+          className="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-teal-300 to-cyan-300 rounded-full blur-3xl animate-blob"
+          style={{
+            transform: `translate(${Math.sin(scrollY * 0.005) * 60}px, ${Math.cos(scrollY * 0.005) * 40}px)`
+          }}
+        ></div>
+        <div 
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-cyan-300 to-blue-300 rounded-full blur-3xl animate-blob animation-delay-4000"
+          style={{
+            transform: `translate(${Math.cos(scrollY * 0.007) * 45}px, ${Math.sin(scrollY * 0.007) * 35}px)`
+          }}
+        ></div>
       </div>
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black text-slate-800 mb-8 animate-fade-in-up">
+          <h2 
+            className="text-5xl md:text-6xl font-black text-slate-800 mb-8 animate-fade-in-up"
+            style={{
+              transform: `translateY(${scrollY * 0.04}px)`
+            }}
+          >
             <span className="bg-gradient-to-r from-slate-800 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-              What Our Community Says
+              What Our Users Say
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300">
-            Join thousands of satisfied patients and healthcare providers who trust MediMage for their medical needs.
+          <p 
+            className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300"
+            style={{
+              transform: `translateY(${scrollY * 0.06}px)`
+            }}
+          >
+            Join thousands of satisfied users who have transformed their workflow with our platform.
           </p>
         </div>
         
@@ -744,7 +880,10 @@ function Testimonials() {
             <div 
               key={index} 
               className="group bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-xl border border-white/50 transform transition-all duration-700 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 animate-fade-in-up"
-              style={{ animationDelay: `${index * 200}ms` }}
+              style={{ 
+                animationDelay: `${index * 200}ms`,
+                transform: `translateY(${Math.sin((scrollY + index * 150) * 0.003) * 12}px)`
+              }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white to-teal-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
               
@@ -779,28 +918,36 @@ function Testimonials() {
           ))}
         </div>
         
-        <div className="text-center mt-16 animate-fade-in-up animation-delay-800">
+        <div 
+          className="text-center mt-16 animate-fade-in-up animation-delay-800"
+          style={{
+            transform: `translateY(${scrollY * 0.03}px)`
+          }}
+        >
           <div className="inline-flex items-center bg-white/80 backdrop-blur-xl rounded-full px-10 py-6 border border-white/50 shadow-xl transform transition-all duration-500 hover:scale-105 hover:bg-white">
             <div className="flex -space-x-3 mr-6">
               {[
-                'from-pink-400 to-red-400',
-                'from-blue-400 to-purple-400',
-                'from-green-400 to-teal-400',
-                'from-yellow-400 to-orange-400',
-                'from-purple-400 to-indigo-400'
+                'from-teal-400 to-cyan-400',
+                'from-cyan-400 to-blue-400',
+                'from-blue-400 to-teal-400',
+                'from-teal-500 to-cyan-500',
+                'from-cyan-500 to-blue-500'
               ].map((gradient, index) => (
                 <div 
                   key={index}
                   className={`w-12 h-12 bg-gradient-to-r ${gradient} rounded-full border-3 border-white shadow-lg transform transition-all duration-300 hover:scale-110 animate-float`}
-                  style={{ animationDelay: `${index * 200}ms` }}
+                  style={{ 
+                    animationDelay: `${index * 200}ms`,
+                    transform: `scale(${1 + Math.sin((scrollY + index * 100) * 0.008) * 0.1})`
+                  }}
                 />
               ))}
               <div className="w-12 h-12 bg-slate-100 rounded-full border-3 border-white flex items-center justify-center shadow-lg">
-                <span className="text-sm font-bold text-slate-600">+50K</span>
+                <span className="text-sm font-bold text-slate-600">+10K</span>
               </div>
             </div>
             <span className="text-slate-700 font-bold text-lg">
-              Join our growing healthcare community
+              Join our growing community
             </span>
           </div>
         </div>
@@ -809,36 +956,68 @@ function Testimonials() {
   );
 }
 
-function CTASection() {
+function CTASection({ scrollY }) {
   return (
-    <section className="py-24 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white relative overflow-hidden">
+    <section 
+      className="py-24 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white relative overflow-hidden"
+      style={{
+        transform: `translateY(${scrollY * 0.01}px)`
+      }}
+    >
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-full h-full opacity-15">
-          <div className="absolute top-10 right-10 w-80 h-80 bg-white rounded-full blur-3xl animate-blob"></div>
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-white rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white rounded-full blur-2xl animate-blob animation-delay-4000"></div>
+          <div 
+            className="absolute top-10 right-10 w-80 h-80 bg-white rounded-full blur-3xl animate-blob"
+            style={{
+              transform: `translate(${Math.sin(scrollY * 0.004) * 50}px, ${Math.cos(scrollY * 0.004) * 30}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute bottom-10 left-10 w-96 h-96 bg-white rounded-full blur-3xl animate-blob animation-delay-2000"
+            style={{
+              transform: `translate(${Math.cos(scrollY * 0.006) * 60}px, ${Math.sin(scrollY * 0.006) * 40}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white rounded-full blur-2xl animate-blob animation-delay-4000"
+            style={{
+              transform: `translate(-50%, -50%) translate(${Math.sin(scrollY * 0.008) * 70}px, ${Math.cos(scrollY * 0.008) * 35}px)`
+            }}
+          ></div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-teal-700/30 to-blue-700/30"></div>
       </div>
       
       <div className="relative max-w-6xl mx-auto px-4 text-center z-10">
         <div className="mb-16">
-          <h2 className="text-5xl md:text-7xl font-black mb-8 leading-tight animate-fade-in-up">
+          <h2 
+            className="text-5xl md:text-7xl font-black mb-8 leading-tight animate-fade-in-up"
+            style={{
+              transform: `translateY(${scrollY * 0.03}px)`
+            }}
+          >
             <span className="bg-gradient-to-r from-white to-teal-100 bg-clip-text text-transparent">
-              Ready to Transform Your Healthcare Experience?
+              Ready to Get Started?
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-teal-100 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300">
-            Join thousands of patients who have discovered a better way to manage their health. 
-            Start your journey with MediMage today.
+          <p 
+            className="text-xl md:text-2xl text-teal-100 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-300"
+            style={{
+              transform: `translateY(${scrollY * 0.05}px)`
+            }}
+          >
+            Join thousands of users who have discovered a better way to work. 
+            Start your journey today and experience the difference.
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16 animate-fade-in-up animation-delay-600">
-          <Link
-            to="/sign-up"
-            className="group relative px-16 py-6 text-xl font-bold text-teal-600 bg-white rounded-full shadow-2xl transform transition-all duration-500 hover:scale-110 hover:shadow-3xl overflow-hidden"
-          >
+        <div 
+          className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16 animate-fade-in-up animation-delay-600"
+          style={{
+            transform: `translateY(${scrollY * 0.02}px)`
+          }}
+        >
+          <p className="group relative px-16 py-6 text-xl font-bold text-teal-600 bg-white rounded-full shadow-2xl transform transition-all duration-500 hover:scale-110 hover:shadow-3xl overflow-hidden cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-teal-50 to-cyan-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-white to-teal-100 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300"></div>
             <span className="relative flex items-center">
@@ -847,24 +1026,33 @@ function CTASection() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </span>
-          </Link>
+          </p>
           
-          <Link
-            to="/doctors"
-            className="group relative px-16 py-6 text-xl font-bold text-white border-2 border-white/40 rounded-full transform transition-all duration-500 hover:scale-105 hover:bg-white/10 hover:border-white/70 backdrop-blur-xl overflow-hidden"
-          >
+          <p className="group relative px-16 py-6 text-xl font-bold text-white border-2 border-white/40 rounded-full transform transition-all duration-500 hover:scale-105 hover:bg-white/10 hover:border-white/70 backdrop-blur-xl overflow-hidden cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-teal-100/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-            <span className="relative">Browse Doctors</span>
-          </Link>
+            <span className="relative">Learn More</span>
+          </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto animate-fade-in-up animation-delay-900">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto animate-fade-in-up animation-delay-900"
+          style={{
+            transform: `translateY(${scrollY * 0.04}px)`
+          }}
+        >
           {[
-            { icon: "M5 13l4 4L19 7", text: "No signup fees" },
+            { icon: "M5 13l4 4L19 7", text: "No setup fees" },
             { icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "Secure & Private" },
             { icon: "M13 10V3L4 14h7v7l9-11h-7z", text: "Instant Access" }
           ].map((item, index) => (
-            <div key={index} className="flex items-center justify-center animate-fade-in-up" style={{ animationDelay: `${900 + index * 200}ms` }}>
+            <div 
+              key={index} 
+              className="flex items-center justify-center animate-fade-in-up" 
+              style={{ 
+                animationDelay: `${900 + index * 200}ms`,
+                transform: `translateY(${Math.sin((scrollY + index * 100) * 0.006) * 10}px)`
+              }}
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-4 mx-auto transform transition-all duration-500 hover:scale-110 hover:bg-white/30 border border-white/30">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -881,89 +1069,55 @@ function CTASection() {
   );
 }
 
-function DashboardCard({ title, description, link, icon, primary = false }) {
-  const baseClasses = "group relative overflow-hidden p-10 rounded-3xl shadow-xl border transform transition-all duration-700 hover:scale-105 animate-fade-in-up";
-  const cardClasses = primary 
-    ? `${baseClasses} bg-gradient-to-br from-teal-600 via-cyan-600 to-blue-600 text-white border-teal-200 hover:shadow-2xl hover:-translate-y-2`
-    : `${baseClasses} bg-white/90 backdrop-blur-xl text-slate-800 border-white/50 hover:bg-white hover:shadow-2xl hover:-translate-y-2`;
-
+function QuickStats({ scrollY }) {
   return (
-    <Link to={link} className={cardClasses}>
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className={`absolute inset-0 ${primary ? 'bg-gradient-to-br from-white/10 to-transparent' : 'bg-gradient-to-br from-teal-50/30 to-transparent'} rounded-3xl`}></div>
-      </div>
-      
-      <div className="absolute top-0 right-0 w-32 h-32 opacity-5 transform rotate-45 translate-x-8 -translate-y-8">
-        <div className={`w-full h-full ${primary ? 'bg-white' : 'bg-gradient-to-r from-teal-500 to-cyan-500'} rounded-2xl`}></div>
-      </div>
-      
-      <div className="relative z-10">
-        <div className={`${primary ? 'text-teal-100' : 'text-teal-500'} mb-8 group-hover:scale-125 group-hover:rotate-6 transition-all duration-500`}>
-          <div className={`p-4 rounded-2xl ${primary ? 'bg-white/20' : 'bg-teal-50'} group-hover:${primary ? 'bg-white/30' : 'bg-teal-100'} transition-colors duration-300`}>
-            {icon}
-          </div>
-        </div>
-        
-        <h3 className="text-2xl font-bold mb-6 relative z-10">{title}</h3>
-        
-        <p className={`text-lg ${primary ? 'text-teal-50' : 'text-slate-600'} leading-relaxed mb-8 relative z-10 group-hover:${primary ? 'text-white' : 'text-slate-700'} transition-colors duration-300`}>
-          {description}
-        </p>
-        
-        <div className="flex items-center relative z-10">
-          <span className={`font-bold text-lg ${primary ? 'text-teal-100' : 'text-teal-600'} group-hover:${primary ? 'text-white' : 'text-teal-700'} transition-colors duration-300`}>
-            Access Now
-          </span>
-          <svg className={`ml-3 w-6 h-6 ${primary ? 'text-teal-100' : 'text-teal-600'} group-hover:translate-x-2 transition-transform duration-300`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function QuickStats() {
-  return (
-    <div className="mt-20 relative animate-fade-in-up animation-delay-1000">
+    <div 
+      className="mt-20 relative animate-fade-in-up animation-delay-1000"
+      style={{
+        transform: `translateY(${scrollY * 0.08}px) scale(${1 + Math.sin(scrollY * 0.005) * 0.02})`
+      }}
+    >
       <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-3xl blur-3xl opacity-10 animate-pulse"></div>
       
       <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-10 transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl">
         <h3 className="text-3xl font-bold text-slate-800 mb-10 text-center flex items-center justify-center">
           <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full mr-3 animate-pulse"></div>
-          Your Health Dashboard
+          Your Activity
         </h3>
         
         <div className="grid md:grid-cols-3 gap-8">
           <StatCard 
             number="0" 
-            label="Upcoming Appointments" 
-            color="blue"
+            label="Projects Created" 
+            color="teal"
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             }
+            scrollY={scrollY}
           />
           <StatCard 
             number="0" 
-            label="Completed Visits" 
-            color="green"
+            label="Tasks Completed" 
+            color="cyan"
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
+            scrollY={scrollY}
           />
           <StatCard 
             number="0" 
-            label="Saved Doctors" 
-            color="purple"
+            label="Connections Made" 
+            color="blue"
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             }
+            scrollY={scrollY}
           />
         </div>
       </div>
@@ -971,15 +1125,20 @@ function QuickStats() {
   );
 }
 
-function StatCard({ number, label, color, icon }) {
+function StatCard({ number, label, color, icon, scrollY }) {
   const colorClasses = {
-    blue: 'text-blue-600 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-blue-100',
-    green: 'text-green-600 bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-100',
-    purple: 'text-purple-600 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-purple-100'
+    teal: 'text-teal-600 bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200 shadow-teal-100',
+    cyan: 'text-cyan-600 bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200 shadow-cyan-100',
+    blue: 'text-blue-600 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-blue-100'
   };
 
   return (
-    <div className={`group p-8 rounded-2xl ${colorClasses[color]} border shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:-translate-y-1`}>
+    <div 
+      className={`group p-8 rounded-2xl ${colorClasses[color]} border shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:-translate-y-1`}
+      style={{
+        transform: `translateY(${Math.sin((scrollY + (color === 'teal' ? 0 : color === 'cyan' ? 100 : 200)) * 0.008) * 5}px)`
+      }}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
       
       <div className="relative z-10">
@@ -993,7 +1152,7 @@ function StatCard({ number, label, color, icon }) {
   );
 }
 
-// Enhanced CSS animations with improved 3D effects
+// Enhanced CSS animations with scroll effects
 const styles = `
   @keyframes float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -1060,24 +1219,35 @@ const styles = `
     box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
   }
   
-  .perspective-1000 {
-    perspective: 1000px;
+  /* Scroll-based transformations */
+  .scroll-transform {
+    will-change: transform;
   }
   
-  .preserve-3d {
-    transform-style: preserve-3d;
+  /* Enhanced parallax effects */
+  .parallax-slow {
+    transform: translateY(calc(var(--scroll) * 0.5px));
   }
   
-  .backface-hidden {
-    backface-visibility: hidden;
+  .parallax-fast {
+    transform: translateY(calc(var(--scroll) * -0.8px));
+  }
+  
+  /* Smooth transitions for scroll effects */
+  .smooth-transform {
+    transition: transform 0.1s ease-out;
   }
   
   @media (prefers-reduced-motion: reduce) {
     .animate-float,
     .animate-blob,
     .animate-gradient,
-    .animate-fade-in-up {
+    .animate-fade-in-up,
+    .scroll-transform,
+    .parallax-slow,
+    .parallax-fast {
       animation: none;
+      transform: none !important;
     }
     
     .animate-fade-in-up {
@@ -1107,9 +1277,15 @@ const styles = `
     backdrop-filter: blur(40px);
   }
   
-  /* Custom gradient backgrounds */
-  .bg-gradient-radial {
-    background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  /* Performance optimizations */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
   }
 `;
 
@@ -1117,8 +1293,8 @@ const styles = `
 if (typeof document !== 'undefined') {
   const styleSheet = document.createElement("style");
   styleSheet.innerText = styles;
-  if (!document.head.querySelector('[data-medimage-enhanced-styles]')) {
-    styleSheet.setAttribute('data-medimage-enhanced-styles', 'true');
+  if (!document.head.querySelector('[data-enhanced-scroll-styles]')) {
+    styleSheet.setAttribute('data-enhanced-scroll-styles', 'true');
     document.head.appendChild(styleSheet);
   }
 }

@@ -1,4 +1,31 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.8 } }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+};
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -241,29 +268,52 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 text-white py-20 pt-32">
+      <motion.div 
+        className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 text-white py-20 pt-32"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">We're Here to Help</h1>
-          <p className="text-xl text-teal-100 max-w-3xl mx-auto leading-relaxed">
+          <motion.h1 
+            className="text-5xl font-bold mb-6"
+            variants={fadeInUp}
+          >
+            We're Here to Help
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-teal-100 max-w-3xl mx-auto leading-relaxed"
+            variants={fadeInUp}
+          >
             Whether you need support with appointments, have questions about our
             services, or want to provide feedback, our dedicated team is ready
             to assist you 24/7.
-          </p>
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Contact Methods Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {contactMethods.map((method, index) => (
-            <ContactMethodCard key={index} method={method} />
+            <ContactMethodCard key={index} method={method} index={index} />
           ))}
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-teal-100">
+            <motion.div 
+              className="bg-white rounded-2xl shadow-xl p-8 border border-teal-100"
+              initial="hidden"
+              animate="visible"
+              variants={scaleIn}
+            >
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-slate-800 mb-3">
                   Send us a Message
@@ -428,10 +478,12 @@ export default function Contact() {
                   </div>
                 </div>
 
-                <button
+                <motion.button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white py-4 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white py-4 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {isSubmitting ? (
                     <>
@@ -456,10 +508,14 @@ export default function Contact() {
                       </svg>
                     </>
                   )}
-                </button>
+                </motion.button>
 
                 {submitStatus === "success" && (
-                  <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl flex items-center space-x-3">
+                  <motion.div 
+                    className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl flex items-center space-x-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
                     <svg
                       className="w-5 h-5 text-green-600"
                       fill="none"
@@ -482,11 +538,15 @@ export default function Contact() {
                         hours.
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
 
                 {submitStatus === "error" && (
-                  <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl flex items-center space-x-3">
+                  <motion.div 
+                    className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl flex items-center space-x-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
                     <svg
                       className="w-5 h-5 text-red-600"
                       fill="none"
@@ -507,24 +567,30 @@ export default function Contact() {
                         email.
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </form>
-            </div>
+            </motion.div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Office Locations */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-teal-100">
+            <motion.div 
+              className="bg-white rounded-2xl shadow-xl p-6 border border-teal-100"
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+            >
               <h3 className="text-2xl font-bold text-slate-800 mb-6">
                 Our Locations
               </h3>
               <div className="space-y-6">
                 {officeLocations.map((location, index) => (
-                  <div
+                  <motion.div
                     key={index}
                     className="border-b border-slate-100 last:border-b-0 pb-6 last:pb-0"
+                    variants={fadeInUp}
                   >
                     <div className="flex items-start space-x-3 mb-3">
                       <div className="w-2 h-2 bg-teal-500 rounded-full mt-2"></div>
@@ -566,7 +632,7 @@ export default function Contact() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth="2"
-                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a极 2 0 00-2 2v10a2 2 0 002 2z"
                           />
                         </svg>
                         <span className="text-slate-700">{location.email}</span>
@@ -582,7 +648,7 @@ export default function Contact() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 极 0 0118 0z"
                           />
                         </svg>
                         <span className="text-teal-600 font-medium">
@@ -606,14 +672,19 @@ export default function Contact() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* FAQ Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-teal-100">
-              <h3 className="text-2xl font-bold text-slate-800 mb-6">
+            <motion.div 
+              className="bg-white rounded-2xl shadow-xl p-6 border border-teal-100"
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+            >
+              <h3 className="text-2xl font-bold text-slate-极 mb-6">
                 Frequently Asked Questions
               </h3>
               <div className="space-y-4">
@@ -622,11 +693,15 @@ export default function Contact() {
                     key={index}
                     question={faq.question}
                     answer={faq.answer}
+                    index={index}
                   />
                 ))}
               </div>
 
-              <div className="mt-6 p-4 bg-teal-50 rounded-xl border border-teal-200">
+              <motion.div 
+                className="mt-6 p-4 bg-teal-50 rounded-xl border border-teal-200"
+                whileHover={{ scale: 1.02 }}
+              >
                 <p className="text-sm text-teal-800">
                   <span className="font-semibold">Need more help?</span> Visit
                   our comprehensive
@@ -638,13 +713,18 @@ export default function Contact() {
                   </a>{" "}
                   for detailed guides and tutorials.
                 </p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
 
         {/* Emergency Notice */}
-        <div className="mt-16 bg-red-50 border-l-4 border-red-500 p-6 rounded-r-xl">
+        <motion.div 
+          className="mt-16 bg-red-50 border-l-4 border-red-500 p-6 rounded-r-xl"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+        >
           <div className="flex items-start space-x-3">
             <svg
               className="w-6 h-6 text-red-500 mt-0.5"
@@ -656,7 +736,7 @@ export default function Contact() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 极 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z"
               />
             </svg>
             <div>
@@ -676,13 +756,13 @@ export default function Contact() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
-function ContactMethodCard({ method }) {
+function ContactMethodCard({ method, index }) {
   const colorClasses = {
     teal: "from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700",
     cyan: "from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700",
@@ -691,14 +771,21 @@ function ContactMethodCard({ method }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-teal-100 p-6 text-center hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-      <div
+    <motion.div 
+      className="bg-white rounded-2xl shadow-lg border border-teal-100 p-6 text-center hover:shadow-2xl transition-all duration-300"
+      variants={fadeInUp}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      custom={index}
+    >
+      <motion.div 
         className={`mx-auto w-16 h-16 bg-gradient-to-r ${
           colorClasses[method.color]
         } rounded-xl flex items-center justify-center mb-4 text-white shadow-lg`}
+        whileHover={{ scale: 1.1 }}
+        transition={{ type: "spring", stiffness: 300 }}
       >
         {method.icon}
-      </div>
+      </motion.div>
       <h3 className="text-xl font-bold text-slate-800 mb-3">{method.title}</h3>
       <div className="mb-4">
         <a
@@ -714,43 +801,55 @@ function ContactMethodCard({ method }) {
       <p className="text-sm text-slate-600 leading-relaxed">
         {method.description}
       </p>
-    </div>
+    </motion.div>
   );
 }
 
-function FAQItem({ question, answer }) {
+function FAQItem({ question, answer, index }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-slate-100 last:border-b-0 pb-4 last:pb-0">
-      <button
+    <motion.div 
+      className="border-b border-slate-100 last:border-b-0 pb-4 last:pb-0"
+      variants={fadeInUp}
+      custom={index}
+    >
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full text-left flex items-center justify-between py-3 hover:bg-slate-50 px-3 rounded-lg transition-colors duration-200"
+        whileHover={{ backgroundColor: "#f8fafc" }}
+        whileTap={{ scale: 0.98 }}
       >
         <span className="font-semibold text-slate-800 text-sm pr-4">
           {question}
         </span>
-        <svg
-          className={`w-5 h-5 text-slate-400 transition-transform duration-200 flex-shrink-0 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+        <motion.svg
+          className="w-5 h-5 text-slate-400 flex-shrink-0"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M19 9l-7 7-7-7"
+            d="M19 9l-7 极-7-7"
           />
-        </svg>
-      </button>
+        </motion.svg>
+      </motion.button>
       {isOpen && (
-        <div className="mt-2 px-3 pb-2">
+        <motion.div 
+          className="mt-2 px-3 pb-2"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <p className="text-sm text-slate-600 leading-relaxed">{answer}</p>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

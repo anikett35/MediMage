@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
+  const navigate = useNavigate();
 
   // Handle scroll effect
   useEffect(() => {
@@ -35,6 +36,16 @@ export default function Navbar() {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isOpen]);
+
+  // Handle admin navigation with authentication check
+  const handleAdminClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      // You can either redirect to sign in or show a message
+      navigate('/sign-in?redirect_url=/admin');
+    }
+    // If signed in, the link will work normally
+  };
 
   const navigationItems = [
     { 
@@ -66,13 +77,14 @@ export default function Navbar() {
       )
     },
     { 
-      name: 'admin', 
+      name: 'Admin', 
       path: '/admin', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-      )
+      ),
+      requiresAuth: true
     },
     
     { 
@@ -125,6 +137,7 @@ export default function Navbar() {
                 isActive={isActivePath(item.path)}
                 scrolled={scrolled}
                 icon={item.icon}
+                onClick={item.requiresAuth ? handleAdminClick : null}
               >
                 {item.name}
               </NavLink>
@@ -209,15 +222,17 @@ export default function Navbar() {
         currentPath={location.pathname}
         onClose={() => setIsOpen(false)}
         scrolled={scrolled}
+        handleAdminClick={handleAdminClick}
       />
     </nav>
   );
 }
 
-function NavLink({ to, children, isActive, scrolled, icon }) {
+function NavLink({ to, children, isActive, scrolled, icon, onClick }) {
   return (
     <Link
       to={to}
+      onClick={onClick}
       className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
         isActive
           ? scrolled
@@ -257,7 +272,7 @@ function NotificationBell({ scrolled }) {
   );
 }
 
-function MobileMenu({ isOpen, navigationItems, currentPath, onClose, scrolled }) {
+function MobileMenu({ isOpen, navigationItems, currentPath, onClose, scrolled, handleAdminClick }) {
   return (
     <div className={`lg:hidden transition-all duration-300 ease-in-out ${
       isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
@@ -271,7 +286,7 @@ function MobileMenu({ isOpen, navigationItems, currentPath, onClose, scrolled })
           <Link
             key={item.path}
             to={item.path}
-            onClick={onClose}
+            onClick={item.requiresAuth ? handleAdminClick : onClose}
             className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-200 ${
               currentPath === item.path
                 ? scrolled

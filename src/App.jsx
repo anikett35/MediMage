@@ -1,5 +1,6 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 // Import your components from your project folder
 import Navbar from './assets/Layout/Navbar';
@@ -11,6 +12,13 @@ import Footer from './assets/Layout/Footer';
 import AdminDashboard from './assets/Components/Pages/admin';
 
 function App() {
+  const location = useLocation();
+
+  // Scroll to top when route changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <>
       <Navbar />
@@ -20,7 +28,19 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/DoctorList" element={<DoctorList />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route 
+          path="/admin" 
+          element={
+            <>
+              <SignedIn>
+                <AdminDashboard />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          } 
+        />
       </Routes>
 
       <Footer />
