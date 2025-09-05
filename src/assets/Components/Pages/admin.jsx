@@ -140,7 +140,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this contact?')) return;
     
     try {
-      const response = await fetch(`/api/contact/delete/${id}`, {
+      const response = await fetch(`https://medimage-1.onrender.com/api/contact/delete/${id}`, {
         method: 'DELETE'
       });
       
@@ -161,7 +161,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this appointment?')) return;
     
     try {
-      const response = await fetch(`/api/appointments/delete/${id}`, {
+      const response = await fetch(`https://medimage-1.onrender.com/api/appointments/delete/${id}`, {
         method: 'DELETE'
       });
       
@@ -184,7 +184,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`⚠️ Are you sure you want to delete ALL ${itemType}?\n\nThis action cannot be undone!`)) return;
     
     try {
-      const endpoint = activeTab === 'contacts' ? '/api/contact/delete-all' : '/api/appointments/delete-all';
+      const endpoint = activeTab === 'contacts' ? 'https://medimage-1.onrender.com/api/contact/delete-all' : 'https://medimage-1.onrender.com/api/appointments/delete-all';
       const response = await fetch(endpoint, {
         method: 'DELETE'
       });
@@ -240,7 +240,7 @@ const AdminDashboard = () => {
   // Mark as replied
   const markAsReplied = async (id) => {
     try {
-      const response = await fetch(`/api/contact/update-status/${id}`, {
+      const response = await fetch(`https://medimage-1.onrender.com/api/contact/update-status/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -263,7 +263,7 @@ const AdminDashboard = () => {
   // Update appointment status
   const updateAppointmentStatus = async (id, status) => {
     try {
-      const response = await fetch(`/api/appointments/update-status/${id}`, {
+      const response = await fetch(`https://medimage-1.onrender.com/api/appointments/update-status/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
