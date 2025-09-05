@@ -30,7 +30,7 @@ const AdminDashboard = () => {
       setLoading(true);
       
       if (activeTab === 'contacts') {
-        const response = await fetch('/api/contact/view');
+        const response = await fetch('https://medimage-1.onrender.com/api/contact/view');
         const data = await response.json();
         
         if (data.success) {
@@ -40,7 +40,7 @@ const AdminDashboard = () => {
           console.error('Failed to load contacts');
         }
       } else {
-        const response = await fetch('/api/appointments/view');
+        const response = await fetch('https://medimage-1.onrender.com/api/appointments/view');
         const data = await response.json();
         
         if (data.success) {
