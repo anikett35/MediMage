@@ -135,26 +135,31 @@ const AdminDashboard = () => {
     setShowModal(true);
   };
 
-  // Delete single contact
-  const deleteContact = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this contact?')) return;
-    
-    try {
-      const response = await fetch(`https://medimage-1.onrender.com/api/contact/delete/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        await loadData();
-        alert('Contact deleted successfully!');
-      } else {
-        alert('Failed to delete contact');
+const deleteContact = async (id) => {
+  try {
+    const response = await fetch(
+      `https://medimage-1.onrender.com/api/contact/delete/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      console.error('Error deleting contact:', error);
-      alert('Error deleting contact');
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setContacts((prev) => prev.filter((c) => c._id !== id));
+      console.log("Deleted:", data.message);
+    } else {
+      console.error("Delete failed:", data.message);
     }
-  };
+  } catch (error) {
+    console.error("Error deleting contact:", error);
+  }
+};
+
 
   // Delete single appointment
  const deleteAppointment = async (id) => {
