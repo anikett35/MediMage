@@ -227,7 +227,7 @@ const DoctorList = () => {
 
       // Submit to backend
       const response = await fetch(
-        "https://medimage-1.onrender.com",
+        "https://medimage-1.onrender.com/api/contact/submit",
         {
           method: "POST",
           headers: {
