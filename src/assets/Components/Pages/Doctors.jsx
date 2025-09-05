@@ -227,7 +227,7 @@ const DoctorList = () => {
 
       // Submit to backend
       const response = await fetch(
-        "http://localhost:5000/api/appointments/book",
+        "https://medimage-1.onrender.com",
         {
           method: "POST",
           headers: {
