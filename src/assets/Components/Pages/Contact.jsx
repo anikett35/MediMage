@@ -563,8 +563,8 @@ export default function Contact() {
                     <div>
                       <p className="font-semibold">Failed to send message</p>
                       <p className="text-sm">
-                        Please try again or contact us directly via phone or
-                        email.
+                        Please try again or contact us directly via phone 
+                        
                       </p>
                     </div>
                   </motion.div>
