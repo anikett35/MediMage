@@ -228,7 +228,6 @@ const DoctorList = () => {
       // Submit to backend
       const response = await fetch(
         "https://medimage-1.onrender.com/api/appointments/book",
-",
         {
           method: "POST",
           headers: {
