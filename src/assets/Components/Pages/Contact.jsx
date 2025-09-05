@@ -57,7 +57,7 @@ export default function Contact() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("https://medimage-1.onrender.com", {
+      const response = await fetch("https://medimage-1.onrender.com/api/contact/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
