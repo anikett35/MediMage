@@ -157,25 +157,32 @@ const AdminDashboard = () => {
   };
 
   // Delete single appointment
-  const deleteAppointment = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this appointment?')) return;
-    
-    try {
-      const response = await fetch(`https://medimage-1.onrender.com/api/appointments/delete/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        await loadData();
-        alert('Appointment deleted successfully!');
-      } else {
-        alert('Failed to delete appointment');
+ const deleteAppointment = async (id) => {
+  try {
+    const response = await fetch(
+      `https://medimage-1.onrender.com/api/appointments/delete/${id}`,
+      {
+        method: "DELETE", // 👈 Important
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      console.error('Error deleting appointment:', error);
-      alert('Error deleting appointment');
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Remove from state so UI updates
+      setAppointments((prev) => prev.filter((appt) => appt._id !== id));
+      console.log("Deleted:", data.message);
+    } else {
+      console.error("Delete failed:", data.message);
     }
-  };
+  } catch (error) {
+    console.error("Error deleting appointment:", error);
+  }
+};
+
 
   // Delete all items
   const deleteAllItems = async () => {
